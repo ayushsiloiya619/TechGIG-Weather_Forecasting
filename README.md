@@ -96,10 +96,10 @@ The script will fetch the weather forecast for the specified city using the Open
 Remember to keep your API key confidential and avoid committing it to a public repository. You can use environment variables or configuration files to securely store the API key and load it into your script.
  <br>
   <footer>
-    <p>&copy; 2023 Ayush Siloiya. All rights reserved.</p>
   <p> <b>  
 Notice: All content on this website, including text, graphics, logos, images, audio clips, and software, is the property of Ayush Siloiya and is protected by international copyright laws. Unauthorized use, reproduction, modification, distribution, or duplication of any content on this website is strictly prohibited and may result in legal action. Visitors to this website may not download, copy, or distribute any materials on this site without prior written permission from Ayush Siloiya.
     </b> </p>
+    <p>&copy; 2023 Ayush Siloiya. All rights reserved.</p>
   </footer>
   </body>
 </html>
