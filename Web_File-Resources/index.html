@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>Weather Forecast</title>
+    <style>
+        /* CSS styling code here */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        form {
+            text-align: center;
+            margin: 20px auto;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        input[type="text"] {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+
+        button[type="submit"] {
+            padding: 8px 16px;
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button[type="submit"]:hover {
+            background-color: #45a049;
+        }
+
+        #forecastContainer {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .forecast {
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 10px;
+        }
+
+        .forecast:last-child {
+            border-bottom: none;
+        }
+
+        p {
+            margin: 0;
+            line-height: 1.5;
+        }
+
+        strong {
+            font-weight: bold;
+        }
+
+        .description {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .description img {
+            width: 30px;
+            height: 30px;
+            margin-right: 10px;
+        }
+
+        .precautions {
+            margin-top: 10px;
+            background-color: #f9f9f9;
+            padding: 10px;
+            border-radius: 4px;
+        }
+
+        /* Media query for mobile devices */
+        @media only screen and (max-width: 600px) {
+            .description img {
+                width: 30px;
+            }
+
+            #temperatureChart,
+            #humidityChart,
+            #heatIndexChart,
+            #coldIndexChart {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Weather Forecast</h1>
+    <form id="cityForm">
+        <label for="cityInput">Enter a city name:</label>
+        <input type="text" id="cityInput">
+        <button type="submit">Get Forecast</button>
+    </form>
+
+    <div id="forecastContainer">
+        <!-- Weather forecast data will be dynamically added here -->
+    </div>
+
+    <script>
+        const form = document.getElementById("cityForm");
+        const forecastContainer = document.getElementById("forecastContainer");
+
+        form.addEventListener("submit", function(event) {
+            event.preventDefault();
+            const cityInput = document.getElementById("cityInput").value;
+            getWeatherForecast(cityInput);
+        });
+
+        function getWeatherForecast(city) {
+            const api_key = ""; // Add your OpenWeatherMap API key here
+
+            // Make a request to OpenWeatherMap API to fetch the weather forecast
+            const url = `http://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${api_key}`;
+            fetch(url)
+                .then(response => response.json())
+                .then(data => displayWeatherForecast(data.list))
+                .catch(error => console.error("Error occurred while fetching weather data:", error));
+        }
+
+        function displayWeatherForecast(forecasts) {
+            forecastContainer.innerHTML = ""; // Clear previous forecast data
+
+            const timestamps = [];
+            const temperatures = [];
+            const humidities = [];
+            const heatIndices = [];
+            const coldIndices = [];
+
+            forecasts.slice(0, 5).forEach(forecast => {
+                const timestamp = forecast.dt_txt;
+                const temperature = forecast.main.temp;
+                const humidity = forecast.main.humidity;
+
+                timestamps.push(timestamp);
+                temperatures.push(convertKelvinToCelsius(temperature));
+                humidities.push(humidity);
+
+                const heatIndex = calculateHeatIndex(convertKelvinToCelsius(temperature), humidity);
+                const coldIndex = calculateColdIndex(convertKelvinToCelsius(temperature), humidity);
+
+                heatIndices.push(heatIndex);
+                coldIndices.push(coldIndex);
+
+                const forecastElement = document.createElement("div");
+                forecastElement.classList.add("forecast");
+
+                // Create the weather description section with cloud illustration
+                const descriptionElement = document.createElement("div");
+                descriptionElement.classList.add("description");
+                const weatherImage = document.createElement("img");
+                const weatherImageAlt = getWeatherImageAlt(forecast.weather[0].description);
+                weatherImage.src = getWeatherImagePath(forecast.weather[0].description);
+                weatherImage.alt = weatherImageAlt;
+                const descriptionText = document.createElement("p");
+                descriptionText.innerHTML = `<strong>Description:</strong> ${forecast.weather[0].description}`;
+
+                descriptionElement.appendChild(weatherImage);
+                descriptionElement.appendChild(descriptionText);
+                forecastElement.appendChild(descriptionElement);
+
+                forecastElement.innerHTML += `
+                    <p><strong>Timestamp:</strong> ${timestamp}</p>
+                    <p><strong>Temperature:</strong> ${convertKelvinToCelsius(temperature)} °C</p>
+                    <p><strong>Humidity:</strong> ${humidity} %</p>
+                    <p><strong>Heat Index:</strong> ${heatIndex.toFixed(2)} °C</p>
+                    <p><strong>Cold Index:</strong> ${coldIndex.toFixed(2)} °C</p>
+                `;
+
+                const precautions = document.createElement("div");
+                precautions.classList.add("precautions");
+                const precautionText = document.createElement("p");
+                precautionText.innerHTML = `<strong>Precautions:</strong> ${getPrecautions(forecast.weather[0].description)}`;
+
+                precautions.appendChild(precautionText);
+                forecastElement.appendChild(precautions);
+
+                forecastContainer.appendChild(forecastElement);
+            });
+
+            // Create temperature line chart
+            const temperatureChartCanvas = document.createElement("canvas");
+            temperatureChartCanvas.id = "temperatureChart";
+            forecastContainer.appendChild(temperatureChartCanvas);
+
+            new Chart(temperatureChartCanvas, {
+                type: "line",
+                data: {
+                    labels: timestamps,
+                    datasets: [{
+                        label: "Temperature (°C)",
+                        data: temperatures,
+                        borderColor: "rgba(255, 99, 132, 1)",
+                        backgroundColor: "rgba(255, 99, 132, 0.2)",
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // Create humidity line chart
+            const humidityChartCanvas = document.createElement("canvas");
+            humidityChartCanvas.id = "humidityChart";
+            forecastContainer.appendChild(humidityChartCanvas);
+
+            new Chart(humidityChartCanvas, {
+                type: "line",
+                data: {
+                    labels: timestamps,
+                    datasets: [{
+                        label: "Humidity (%)",
+                        data: humidities,
+                        borderColor: "rgba(54, 162, 235, 1)",
+                        backgroundColor: "rgba(54, 162, 235, 0.2)",
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+
+            // Create heat index line chart
+            const heatIndexChartCanvas = document.createElement("canvas");
+            heatIndexChartCanvas.id = "heatIndexChart";
+            forecastContainer.appendChild(heatIndexChartCanvas);
+
+            new Chart(heatIndexChartCanvas, {
+                type: "line",
+                data: {
+                    labels: timestamps,
+                    datasets: [{
+                        label: "Heat Index (°C)",
+                        data: heatIndices,
+                        borderColor: "rgba(255, 206, 86, 1)",
+                        backgroundColor: "rgba(255, 206, 86, 0.2)",
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // Create cold index line chart
+            const coldIndexChartCanvas = document.createElement("canvas");
+            coldIndexChartCanvas.id = "coldIndexChart";
+            forecastContainer.appendChild(coldIndexChartCanvas);
+
+            new Chart(coldIndexChartCanvas, {
+                type: "line",
+                data: {
+                    labels: timestamps,
+                    datasets: [{
+                        label: "Cold Index (°C)",
+                        data: coldIndices,
+                        borderColor: "rgba(75, 192, 192, 1)",
+                        backgroundColor: "rgba(75, 192, 192, 0.2)",
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        function calculateHeatIndex(temperature, humidity) {
+            // Calculate the heat index using the formula
+            const c1 = -8.78469475556;
+            const c2 = 1.61139411;
+            const c3 = 2.33854883889;
+            const c4 = -0.14611605;
+            const c5 = -0.012308094;
+            const c6 = -0.0164248277778;
+            const c7 = 0.002211732;
+            const c8 = 0.00072546;
+            const c9 = -0.000003582;
+
+            const heatIndex = c1 +
+                (c2 * temperature) +
+                (c3 * humidity) +
+                (c4 * temperature * humidity) +
+                (c5 * temperature * temperature) +
+                (c6 * humidity * humidity) +
+                (c7 * temperature * temperature * humidity) +
+                (c8 * temperature * humidity * humidity) +
+                (c9 * temperature * temperature * humidity * humidity);
+
+            return heatIndex;
+        }
+
+        function calculateColdIndex(temperature, humidity) {
+            // Calculate the cold index using the formula
+            const c1 = 37.0;
+            const c2 = 2.2;
+            const c3 = 1.8;
+
+            const coldIndex = c1 - (c2 * temperature) + (c3 * humidity);
+
+            return coldIndex;
+        }
+
+        function convertKelvinToCelsius(temperature) {
+            // Convert temperature from Kelvin to Celsius
+            return temperature - 273.15;
+        }
+
+        function getWeatherImagePath(description) {
+            // Return the path to the weather image based on the description
+            switch (description) {
+                case "clear sky":
+                    return "clear_sky.png";
+                case "few clouds":
+                    return "cloud.png";
+                case "scattered clouds":
+                    return "scattered_clouds.png";
+                case "broken clouds":
+                    return "broken_clouds.png";
+                case "shower rain":
+                    return "shower_rain.png";
+                case "light rain":
+                    return "light_rain.png";
+                default:
+                    return "cloud.png";
+            }
+        }
+
+        function getWeatherImageAlt(description) {
+            // Return the alt text for the weather image based on the description
+            switch (description) {
+                case "clear sky":
+                    return "Clear sky";
+                case "few clouds":
+                    return "Few clouds";
+                case "scattered clouds":
+                    return "Scattered clouds";
+                case "broken clouds":
+                    return "Broken clouds";
+                case "shower rain":
+                    return "Shower rain";
+                case "light rain":
+                    return "Light rain";
+                default:
+                    return "Unknown weather";
+            }
+        }
+
+        function getPrecautions(description) {
+            // Return the precautions based on the weather description
+            switch (description) {
+                case "clear sky":
+                    return "No specific precautions needed.";
+                case "few clouds":
+                    return "Carry an umbrella in case it starts raining.";
+                case "scattered clouds":
+                    return "Take an umbrella or raincoat with you.";
+                case "broken clouds":
+                    return "Carry an umbrella in case it starts raining.";
+                case "shower rain":
+                    return "Carry an umbrella or raincoat with you.";
+                case "light rain":
+                    return "Carry an umbrella or raincoat with you.";
+                default:
+                    return "No specific precautions needed.";
+            }
+        }
+    </script>
+</body>
+</html>
