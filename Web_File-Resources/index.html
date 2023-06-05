@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -44,66 +45,6 @@
 
         button[type="submit"]:hover {
             background-color: #45a049;
-        }
-
-        #forecastContainer {
-            max-width: 600px;
-            margin: 20px auto;
-            padding: 20px;
-            background-color: #fff;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .forecast {
-            margin-bottom: 20px;
-            border-bottom: 1px solid #ccc;
-            padding-bottom: 10px;
-        }
-
-        .forecast:last-child {
-            border-bottom: none;
-        }
-
-        p {
-            margin: 0;
-            line-height: 1.5;
-        }
-
-        strong {
-            font-weight: bold;
-        }
-
-        .description {
-            display: flex;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .description img {
-            width: 30px;
-            height: 30px;
-            margin-right: 10px;
-        }
-
-        .precautions {
-            margin-top: 10px;
-            background-color: #f9f9f9;
-            padding: 10px;
-            border-radius: 4px;
-        }
-
-        /* Media query for mobile devices */
-        @media only screen and (max-width: 600px) {
-            .description img {
-                width: 30px;
-            }
-
-            #temperatureChart,
-            #humidityChart,
-            #heatIndexChart,
-            #coldIndexChart {
-                max-width: 100%;
-            }
         }
     </style>
 </head>
@@ -356,16 +297,6 @@
             switch (description) {
                 case "clear sky":
                     return "clear_sky.png";
-                case "few clouds":
-                    return "cloud.png";
-                case "scattered clouds":
-                    return "scattered_clouds.png";
-                case "broken clouds":
-                    return "broken_clouds.png";
-                case "shower rain":
-                    return "shower_rain.png";
-                case "light rain":
-                    return "light_rain.png";
                 default:
                     return "cloud.png";
             }
@@ -376,16 +307,6 @@
             switch (description) {
                 case "clear sky":
                     return "Clear sky";
-                case "few clouds":
-                    return "Few clouds";
-                case "scattered clouds":
-                    return "Scattered clouds";
-                case "broken clouds":
-                    return "Broken clouds";
-                case "shower rain":
-                    return "Shower rain";
-                case "light rain":
-                    return "Light rain";
                 default:
                     return "Unknown weather";
             }
@@ -396,20 +317,8 @@
             switch (description) {
                 case "clear sky":
                     return "No specific precautions needed.";
-                case "few clouds":
-                    return "Carry an umbrella in case it starts raining.";
-                case "scattered clouds":
-                    return "Take an umbrella or raincoat with you.";
-                case "broken clouds":
-                    return "Carry an umbrella in case it starts raining.";
-                case "shower rain":
-                    return "Carry an umbrella or raincoat with you.";
-                case "light rain":
-                    return "Carry an umbrella or raincoat with you.";
                 default:
                     return "No specific precautions needed.";
             }
         }
-    </script>
-</body>
-</html>
+   
